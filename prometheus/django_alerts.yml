@@ -1,0 +1,59 @@
+groups:
+  - name: django_performance_alerts
+    rules:
+      # Alerta: Vista con memoria alta (>50MB promedio)
+      - alert: DjangoViewHighMemory
+        expr: |
+          (
+            rate(django_view_memory_bytes_sum[5m]) / 
+            rate(django_view_memory_bytes_count[5m])
+          ) / (1024 * 1024) > 50
+        for: 3m
+        labels:
+          severity: warning
+          component: django
+        annotations:
+          summary: "Vista {{ $labels.view_name }} consume {{ $value | humanize }}MB de memoria"
+          description: "La vista {{ $labels.view_name }} (método {{ $labels.method }}) está consumiendo {{ $value | humanize }}MB en promedio, lo cual es excesivo."
+          runbook_url: "https://your-docs.com/django-memory-optimization"
+
+      # Alerta: Posible N+1 queries
+      - alert: DjangoViewExcessiveQueries  
+        expr: |
+          (
+            rate(django_view_queries_total_sum[5m]) / 
+            rate(django_view_queries_total_count[5m])
+          ) > 20
+        for: 2m
+        labels:
+          severity: critical
+          component: django
+        annotations:
+          summary: "Vista {{ $labels.view_name }} ejecuta {{ $value }} queries (posible N+1)"
+          description: "La vista {{ $labels.view_name }} está ejecutando {{ $value }} queries en promedio. Revisar optimización de base de datos."
+
+      # Alerta: Vista lenta en CPU
+      - alert: DjangoViewHighCPU
+        expr: |
+          (
+            rate(django_view_cpu_seconds_sum[5m]) / 
+            rate(django_view_cpu_seconds_count[5m])
+          ) > 2
+        for: 2m
+        labels:
+          severity: warning
+          component: django
+        annotations:
+          summary: "Vista {{ $labels.view_name }} consume {{ $value }}s de CPU"
+          description: "La vista {{ $labels.view_name }} está tardando {{ $value }} segundos de CPU en promedio."
+
+      # Alerta: Proceso Django con memoria alta
+      - alert: DjangoProcessHighMemory
+        expr: django_process_memory_bytes / (1024 * 1024) > 500
+        for: 5m
+        labels:
+          severity: warning
+          component: django
+        annotations:
+          summary: "Proceso Django usando {{ $value }}MB de memoria"
+          description: "El proceso Django está consumiendo {{ $value }}MB de memoria total."
