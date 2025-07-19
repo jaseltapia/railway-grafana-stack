@@ -1,24 +1,26 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Archivos de reglas de alertas (opcional)
+rule_files:
+  - "django_alerts.yml"
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
   
-  - job_name: 'django-app'
+  - job_name: 'django-smartfile'
     static_configs:
       - targets: ['smartfile.railway.internal:8000']
     metrics_path: '/metrics'
     scrape_interval: 15s
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
+    scrape_timeout: 10s
+    
+    # Etiquetas adicionales para identificar la app
     relabel_configs:
-      # Esta regla toma la etiqueta 'name' que viene de cAdvisor 
-      # (que se ve como '/django-app') y crea una nueva etiqueta
-      # llamada 'container_name' sin la barra inicial (ej. 'django-app').
-      # Los dashboards entienden esta nueva etiqueta.
-      - source_labels: [name]
-        regex: '/(.*)'
-        target_label: container_name
-        replacement: '$1'
+      - target_label: 'app'
+        replacement: 'smartfile'
+      - target_label: 'environment'
+        replacement: 'production'
