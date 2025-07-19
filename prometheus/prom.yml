@@ -6,8 +6,7 @@ scrape_configs:
       - targets: ['localhost:9090']
   
   - job_name: 'django-app'
-    scheme: https
     static_configs:
-      - targets: ['www.smartfile.app']
+      - targets: ['smartfile.railway.internal:8000']
     metrics_path: '/metrics'
     scrape_interval: 15s
