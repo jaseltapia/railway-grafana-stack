@@ -13,7 +13,7 @@ scrape_configs:
   
   - job_name: 'django-smartfile'
     static_configs:
-      - targets: ['smartfile.railway.internal:8000']
+      - targets: ['www.smartfile.app']
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 10s
