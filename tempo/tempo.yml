@@ -8,12 +8,18 @@ compactor:
 storage:
   trace:
     backend: local
+    # WAL para los bloques de trazas
+    wal:
+      path: /var/tempo/wal
+    # Donde se guardan los bloques en disco (igual que antes)
     local:
       path: /var/tempo/traces
 
 distributor:
+  # Para ver en los logs cuantos spans recibe
   log_received_spans:
-        enabled: true
+    enabled: true
+
   receivers:
     otlp:
       protocols:
@@ -21,3 +27,37 @@ distributor:
           endpoint: "0.0.0.0:4317"
         http:
           endpoint: "0.0.0.0:4318"
+
+# (Opcional, pero suele ser buena idea ser explícito)
+ingester:
+  # tiempo que un trace puede estar “idle” antes de flush
+  trace_idle_period: 10s
+  # puedes dejar estos en los defaults si prefieres
+  max_block_bytes: 524288000   # 500 MB
+  max_block_duration: 30m
+
+# === METRICS GENERATOR ===
+# Necesario para Breakdown, Span rate, etc.
+metrics_generator:
+  # Tempo exige un path para el WAL del metrics-generator;
+  # si no lo tiene, lo deshabilita.
+  storage:
+    path: /var/tempo/generator/wal
+
+  # Config específica del procesador local-blocks
+  processor:
+    local_blocks:
+      # Usa también spans que no sean sólo kind=server
+      filter_server_spans: false
+      # Para poder hacer métricas sobre datos históricos
+      flush_to_storage: true
+
+# === OVERRIDES ===
+# Aquí activamos el procesador local-blocks para el/los tenants.
+# En single-tenant esto aplica “a todo”.
+overrides:
+  defaults:
+    metrics_generator:
+      # Si más adelante quieres service-graphs o span-metrics:
+      # processors: [service-graphs, span-metrics, local-blocks]
+      processors: [local-blocks]
